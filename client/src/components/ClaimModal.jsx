@@ -13,7 +13,7 @@ const ClaimModal = ({ item, isOpen, onClose, onSubmit }) => {
     
     const claimFormData = new FormData();
     claimFormData.append('studentName', formData.studentName);
-    claimFormData.append('rollNumber', formData.rollNumber);
+    claimFormData.append('rollNo', formData.rollNumber);
     if (formData.idCardImage) {
       claimFormData.append('idCardImage', formData.idCardImage);
     }
@@ -49,7 +49,7 @@ const ClaimModal = ({ item, isOpen, onClose, onSubmit }) => {
           </div>
 
           <div className="mb-4">
-            <h4 className="font-medium text-gray-900 mb-2">{item.name}</h4>
+            <h4 className="font-medium text-gray-900 mb-2">{item.itemName}</h4>
             <p className="text-sm text-gray-600">{item.description}</p>
           </div>
 

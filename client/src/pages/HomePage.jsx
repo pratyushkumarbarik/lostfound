@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import ItemCard from '../components/ItemCard';
-import { mockData } from '../utils/api';
+import { itemsAPI } from '../utils/api';
 
 const HomePage = () => {
   const [items, setItems] = useState([]);
@@ -9,14 +9,21 @@ const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    setTimeout(() => {
-      setItems(mockData.items);
-      setLoading(false);
-    }, 500);
+    const fetchItems = async () => {
+      try {
+        const response = await itemsAPI.getAllItems();
+        setItems(response.data);
+      } catch (error) {
+        console.error('Error fetching items:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchItems();
   }, []);
 
   const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -67,7 +74,7 @@ const HomePage = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredItems.map((item) => (
-              <ItemCard key={item.id} item={item} />
+              <ItemCard key={item._id} item={item} />
             ))}
           </div>
         )}

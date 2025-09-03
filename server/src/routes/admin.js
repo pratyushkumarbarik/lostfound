@@ -1,28 +1,14 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const multer = require('multer');
-const path = require('path');
 
 const { authMiddleware } = require('../middleware/auth');
+const { upload, fileUrl } = require('../middleware/upload');
 const Admin = require('../models/Admin');
 const Item = require('../models/Item');
 const ReportedItem = require('../models/ReportedItem');
 
 const router = express.Router();
-
-const storage = multer.diskStorage({
-	destination: function (req, file, cb) {
-		cb(null, path.join(__dirname, '..', '..', 'uploads'));
-	},
-	filename: function (req, file, cb) {
-		const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-		const ext = path.extname(file.originalname);
-		cb(null, unique + ext);
-	},
-});
-
-const upload = multer({ storage });
 
 // POST /admin/login
 router.post('/login', async (req, res) => {
@@ -43,7 +29,7 @@ router.post('/login', async (req, res) => {
 router.post('/add-item', authMiddleware, upload.single('image'), async (req, res) => {
 	try {
 		const { itemName, description, foundLocation } = req.body;
-		const image = req.file ? `/uploads/${req.file.filename}` : undefined;
+		const image = req.file ? fileUrl(req, req.file.filename) : undefined;
 		const item = await Item.create({ itemName, description, foundLocation, image, status: 'Available' });
 		res.status(201).json(item);
 	} catch (err) {
@@ -66,7 +52,7 @@ router.put('/items/:id/claim', authMiddleware, upload.single('idCardImage'), asy
 	try {
 		const { id } = req.params;
 		const { studentName, rollNo } = req.body;
-		const idCardImage = req.file ? `/uploads/${req.file.filename}` : undefined;
+		const idCardImage = req.file ? fileUrl(req, req.file.filename) : undefined;
 		const item = await Item.findByIdAndUpdate(
 			id,
 			{ status: 'Claimed', claimedBy: { studentName, rollNo, idCardImage } },

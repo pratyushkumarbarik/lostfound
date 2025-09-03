@@ -1,24 +1,10 @@
 const express = require('express');
-const multer = require('multer');
-const path = require('path');
+const { upload, fileUrl } = require('../middleware/upload');
 
 const Item = require('../models/Item');
 const ReportedItem = require('../models/ReportedItem');
 
 const router = express.Router();
-
-const storage = multer.diskStorage({
-	destination: function (req, file, cb) {
-		cb(null, path.join(__dirname, '..', '..', 'uploads'));
-	},
-	filename: function (req, file, cb) {
-		const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-		const ext = path.extname(file.originalname);
-		cb(null, unique + ext);
-	},
-});
-
-const upload = multer({ storage });
 
 // GET /items
 router.get('/items', async (req, res) => {
@@ -34,7 +20,7 @@ router.get('/items', async (req, res) => {
 router.post('/report-item', upload.single('image'), async (req, res) => {
 	try {
 		const { studentName, branch, rollNo, itemName, description } = req.body;
-		const image = req.file ? `/uploads/${req.file.filename}` : undefined;
+		const image = req.file ? fileUrl(req, req.file.filename) : undefined;
 		const reported = await ReportedItem.create({
 			studentName,
 			branch,

@@ -3,7 +3,7 @@ import { Package, Users, Clock } from 'lucide-react';
 import ItemCard from '../components/ItemCard';
 import ReportedItemCard from '../components/ReportedItemCard';
 import ClaimModal from '../components/ClaimModal';
-import { mockData } from '../utils/api';
+import { itemsAPI } from '../utils/api';
 
 const AdminDashboard = () => {
   const [items, setItems] = useState([]);
@@ -13,11 +13,21 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setTimeout(() => {
-      setItems(mockData.items);
-      setReportedItems(mockData.reportedItems);
-      setLoading(false);
-    }, 500);
+    const fetchData = async () => {
+      try {
+        const [itemsResponse, reportedResponse] = await Promise.all([
+          itemsAPI.getAdminItems(),
+          itemsAPI.getReportedItems()
+        ]);
+        setItems(itemsResponse.data);
+        setReportedItems(reportedResponse.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   const handleClaimItem = (item) => {
@@ -25,45 +35,35 @@ const AdminDashboard = () => {
     setIsClaimModalOpen(true);
   };
 
-  const handleClaimSubmit = (claimData) => {
+  const handleClaimSubmit = async (claimData) => {
     if (selectedItem) {
-      const updatedItems = items.map(item => 
-        item.id === selectedItem.id 
-          ? {
-              ...item,
-              status: 'Claimed',
-              claimedBy: {
-                studentName: claimData.get('studentName'),
-                rollNumber: claimData.get('rollNumber'),
-                idCardImage: 'mock-id-card.jpg'
-              }
-            }
-          : item
-      );
-      setItems(updatedItems);
+      try {
+        const response = await itemsAPI.claimItem(selectedItem._id, claimData);
+        const updatedItems = items.map(item => 
+          item._id === selectedItem._id ? response.data : item
+        );
+        setItems(updatedItems);
+      } catch (error) {
+        console.error('Error claiming item:', error);
+      }
     }
   };
 
-  const handleApproveReported = (reportedItem) => {
-    const newItem = {
-      id: Date.now().toString(),
-      name: reportedItem.itemName,
-      description: reportedItem.description,
-      image: reportedItem.image,
-      location: 'Reported by student',
-      status: 'Available',
-      createdAt: new Date().toISOString()
-    };
-
-    setItems([newItem, ...items]);
-    setReportedItems(reportedItems.map(item => 
-      item.id === reportedItem.id ? { ...item, status: 'Approved' } : item
-    ));
+  const handleApproveReported = async (reportedItem) => {
+    try {
+      const response = await itemsAPI.approveReportedItem(reportedItem._id);
+      setItems([response.data.approved, ...items]);
+      setReportedItems(reportedItems.map(item => 
+        item._id === reportedItem._id ? response.data.reported : item
+      ));
+    } catch (error) {
+      console.error('Error approving reported item:', error);
+    }
   };
 
   const handleRejectReported = (reportedItem) => {
     setReportedItems(reportedItems.map(item => 
-      item.id === reportedItem.id ? { ...item, status: 'Rejected' } : item
+      item._id === reportedItem._id ? { ...item, status: 'Rejected' } : item
     ));
   };
 
@@ -132,7 +132,7 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {items.map((item) => (
                 <ItemCard
-                  key={item.id}
+                  key={item._id}
                   item={item}
                   showClaimButton={true}
                   onClaim={handleClaimItem}
@@ -154,7 +154,7 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {reportedItems.map((item) => (
                 <ReportedItemCard
-                  key={item.id}
+                  key={item._id}
                   item={item}
                   onApprove={handleApproveReported}
                   onReject={handleRejectReported}

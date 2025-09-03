@@ -1,5 +1,6 @@
 import React from 'react';
 import { Clock, User, BookOpen, Hash } from 'lucide-react';
+import { assetUrl } from '../utils/api';
 
 const ReportedItemCard = ({ item, onApprove, onReject }) => {
   const formatDate = (dateString) => {
@@ -12,11 +13,13 @@ const ReportedItemCard = ({ item, onApprove, onReject }) => {
     });
   };
 
+  const imageSrc = item.image ? assetUrl(item.image) : 'https://via.placeholder.com/400x300?text=No+Image';
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="aspect-w-16 aspect-h-9">
         <img
-          src={item.image}
+          src={imageSrc}
           alt={item.itemName}
           className="w-full h-48 object-cover"
         />
@@ -47,7 +50,7 @@ const ReportedItemCard = ({ item, onApprove, onReject }) => {
           </div>
           <div className="flex items-center text-sm text-gray-500">
             <Hash className="h-4 w-4 mr-2" />
-            <span>{item.rollNumber}</span>
+            <span>{item.rollNo}</span>
           </div>
           <div className="flex items-center text-sm text-gray-500">
             <BookOpen className="h-4 w-4 mr-2" />

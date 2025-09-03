@@ -24,11 +24,21 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      if (email === 'admin@college.edu' && password === 'admin123') {
+      const response = await fetch('http://localhost:5000/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const { token } = await response.json();
         const adminUser = {
           id: '1',
-          email: 'admin@college.edu',
+          email: email,
           role: 'admin',
+          token: token,
         };
         setUser(adminUser);
         localStorage.setItem('user', JSON.stringify(adminUser));

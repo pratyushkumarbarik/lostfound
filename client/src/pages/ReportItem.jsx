@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, FileImage } from 'lucide-react';
+import { itemsAPI } from '../utils/api';
 
 const ReportItem = () => {
   const [formData, setFormData] = useState({
@@ -41,13 +42,16 @@ const ReportItem = () => {
 
     try {
       const reportFormData = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null) {
-          reportFormData.append(key, value);
-        }
-      });
+      reportFormData.append('studentName', formData.studentName);
+      reportFormData.append('branch', formData.branch);
+      reportFormData.append('rollNo', formData.rollNumber);
+      reportFormData.append('itemName', formData.itemName);
+      reportFormData.append('description', formData.description);
+      if (formData.image) {
+        reportFormData.append('image', formData.image);
+      }
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await itemsAPI.reportItem(reportFormData);
       
       setSubmitSuccess(true);
       setFormData({

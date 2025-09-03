@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, FileImage, Package } from 'lucide-react';
+import { itemsAPI } from '../utils/api';
 
 const AddItem = () => {
   const [formData, setFormData] = useState({
@@ -30,13 +31,14 @@ const AddItem = () => {
 
     try {
       const itemFormData = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null) {
-          itemFormData.append(key, value);
-        }
-      });
+      itemFormData.append('itemName', formData.name);
+      itemFormData.append('description', formData.description);
+      itemFormData.append('foundLocation', formData.location);
+      if (formData.image) {
+        itemFormData.append('image', formData.image);
+      }
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await itemsAPI.addItem(itemFormData);
       
       setSubmitSuccess(true);
       setFormData({
